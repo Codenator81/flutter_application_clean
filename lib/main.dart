@@ -1,12 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_clean/features/home/presentation/screens/home_screen.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 void main() {
-  runApp(
-    const ProviderScope(
-      child: MainApp(),
-    ),
-  );
+  runApp(const ProviderScope(child: MainApp()));
 }
 
 class MainApp extends ConsumerWidget {
@@ -21,11 +18,7 @@ class MainApp extends ConsumerWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
         useMaterial3: true,
       ),
-      home: const Scaffold(
-        body: Center(
-          child: Text('Hello World!'),
-        ),
-      ),
+      home: const HomeScreen(),
     );
   }
 }
