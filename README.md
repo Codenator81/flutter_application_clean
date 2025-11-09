@@ -13,6 +13,23 @@ A Flutter project implementing Clean Architecture with Riverpod state management
 - **GoRouter** - Declarative routing
 - **Hive** - Fast local storage
 
+## Learning Project
+
+This project demonstrates Clean Architecture with Riverpod through a **TODO App** example.
+
+### What's Implemented:
+- ✅ **Home Feature** - Simple welcome screen
+- ✅ **TODO Feature** - Complete CRUD operations with Clean Architecture
+  - Domain Layer: Todo entities and business rules
+  - Data Layer: In-memory data storage with repository pattern
+  - Presentation Layer: Todo list UI with Riverpod state management
+
+This serves as a practical learning resource for:
+- Understanding Clean Architecture layers
+- Implementing Riverpod with code generation
+- Separating concerns (business logic, data, UI)
+- Feature-based project structure
+
 ## Project Structure
 
 ```
