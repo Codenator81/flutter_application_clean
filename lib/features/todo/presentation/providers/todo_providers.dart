@@ -35,24 +35,35 @@ class TodoList extends _$TodoList {
   @override
   Future<List<Todo>> build() async {
     final repository = ref.watch(todoRepositoryProvider);
-    return repository.getTodos();
+    final result = await repository.getTodos();
+
+    return result.fold(
+      (failure) => throw failure, // AsyncValue will catch this
+      (todos) => todos, // Return success data
+    );
   }
 
   Future<void> addTodo(String title) async {
     final repository = ref.read(todoRepositoryProvider);
-    await repository.addTodo(title);
-    ref.invalidateSelf(); // Refresh the list
+    final result = await repository.addTodo(title);
+    return result.fold(
+      (failure) => throw failure, //  Will be caught by caller
+      (_) => ref.invalidateSelf(), // Success - refresh list
+    );
   }
 
   Future<void> toggleTodo(String id) async {
     final repository = ref.read(todoRepositoryProvider);
-    await repository.toggleTodo(id);
-    ref.invalidateSelf(); // Refresh the list
+    final result = await repository.toggleTodo(id);
+    return result.fold(
+      (failure) => throw failure, //  Will be caught by caller
+      (_) => ref.invalidateSelf(), // Success - refresh list
+    );
   }
 
   Future<void> deleteTodo(String id) async {
     final repository = ref.read(todoRepositoryProvider);
-    await repository.deleteTodo(id);
-    ref.invalidateSelf(); // Refresh the list
+    final result = await repository.deleteTodo(id);
+    result.fold((failure) => throw failure, (_) => ref.invalidateSelf());
   }
 }
