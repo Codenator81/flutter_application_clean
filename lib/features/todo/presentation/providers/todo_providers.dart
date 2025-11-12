@@ -1,15 +1,25 @@
 import 'package:flutter_application_clean/features/todo/data/datasources/todo_local_datasource.dart';
+import 'package:flutter_application_clean/features/todo/data/models/todo_model.dart';
 import 'package:flutter_application_clean/features/todo/data/repositories/todo_repository_impl.dart';
 import 'package:flutter_application_clean/features/todo/domain/entities/todo.dart';
 import 'package:flutter_application_clean/features/todo/domain/repositories/todo_repository.dart';
+import 'package:hive/hive.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'todo_providers.g.dart';
 
+// Hive Box Provider
+@Riverpod(keepAlive: true)
+Future<Box<TodoModel>> todoBox(TodoBoxRef ref) async {
+  // Open the box (creates if doesn't exist)
+  return await Hive.openBox<TodoModel>('todos');
+}
+
 // Data Source Provider
 @riverpod
 TodoLocalDataSource todoLocalDataSource(TodoLocalDataSourceRef ref) {
-  return TodoLocalDataSource();
+  final box = ref.watch(todoBoxProvider).requireValue;
+  return TodoLocalDataSource(box);
 }
 
 // Repository Provider

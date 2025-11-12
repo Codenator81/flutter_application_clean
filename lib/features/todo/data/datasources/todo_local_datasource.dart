@@ -1,38 +1,46 @@
+import 'package:flutter_application_clean/features/todo/data/models/todo_model.dart';
 import 'package:flutter_application_clean/features/todo/domain/entities/todo.dart';
+import 'package:hive/hive.dart';
 import 'package:uuid/uuid.dart';
 
 class TodoLocalDataSource {
-  final List<Todo> _todos = [];
+  final Box<TodoModel> box;
   final _uuid = const Uuid();
 
+  TodoLocalDataSource(this.box);
+
   List<Todo> getTodos() {
-    return List.unmodifiable(_todos);
+    return box.values.map((model) => model.toEntity()).toList();
   }
 
   Todo addTodo(String title) {
-    final todo = Todo(
+    final model = TodoModel(
       id: _uuid.v4(),
       title: title,
       isCompleted: false,
       createdAt: DateTime.now(),
     );
-    _todos.add(todo);
-    return todo;
+    box.put(model.id, model);
+    return model.toEntity();
   }
 
   Todo toggleTodo(String id) {
-    final index = _todos.indexWhere((todo) => todo.id == id);
-    if (index == -1) {
+    final model = box.get(id);
+    if (model == null) {
       throw Exception('Todo not found');
     }
 
-    final todo = _todos[index];
-    final updatedTodo = todo.copyWith(isCompleted: !todo.isCompleted);
-    _todos[index] = updatedTodo;
-    return updatedTodo;
+    final updatedModel = TodoModel(
+      id: model.id,
+      title: model.title,
+      isCompleted: !model.isCompleted,
+      createdAt: model.createdAt,
+    );
+    box.put(id, updatedModel);
+    return updatedModel.toEntity();
   }
 
   void deleteTodo(String id) {
-    _todos.removeWhere((todo) => todo.id == id);
+    box.delete(id);
   }
 }
