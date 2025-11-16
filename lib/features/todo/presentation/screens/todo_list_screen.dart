@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_clean/core/errors/failures.dart';
 import 'package:flutter_application_clean/features/todo/presentation/providers/todo_providers.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -32,8 +33,16 @@ class TodoListScreen extends ConsumerWidget {
               return ListTile(
                 leading: Checkbox(
                   value: todo.isCompleted,
-                  onChanged: (_) {
-                    ref.read(todoListProvider.notifier).toggleTodo(todo.id);
+                  onChanged: (_) async {
+                    try {
+                      await ref
+                          .read(todoListProvider.notifier)
+                          .toggleTodo(todo.id);
+                    } catch (e) {
+                      if (context.mounted) {
+                        _showErrorSnackBar(context, e);
+                      }
+                    }
                   },
                 ),
                 title: Text(
@@ -46,16 +55,43 @@ class TodoListScreen extends ConsumerWidget {
                 ),
                 trailing: IconButton(
                   icon: const Icon(Icons.delete, color: Colors.red),
-                  onPressed: () {
-                    ref.read(todoListProvider.notifier).deleteTodo(todo.id);
+                  onPressed: () async {
+                    try {
+                      await ref
+                          .read(todoListProvider.notifier)
+                          .deleteTodo(todo.id);
+                    } catch (e) {
+                      if (context.mounted) {
+                        _showErrorSnackBar(context, e);
+                      }
+                    }
                   },
                 ),
               );
             },
           );
         },
-        error: (error, stack) => Center(child: Text('Error: $error')),
         loading: () => const Center(child: CircularProgressIndicator()),
+        error: (error, stack) => Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.error_outline, size: 48, color: Colors.red),
+              const SizedBox(height: 16),
+              Text(
+                _getErrorMessage(error),
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 16),
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton.icon(
+                onPressed: () => ref.invalidate(todoListProvider),
+                icon: const Icon(Icons.refresh),
+                label: const Text('Retry'),
+              ),
+            ],
+          ),
+        ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showAddTodoDialog(context, ref),
@@ -82,10 +118,19 @@ class TodoListScreen extends ConsumerWidget {
             child: const Text('Cancel'),
           ),
           FilledButton(
-            onPressed: () {
-              if (controller.text.trim().isNotEmpty) {
-                ref.read(todoListProvider.notifier).addTodo(controller.text);
-                Navigator.pop(context);
+            onPressed: () async {
+              try {
+                await ref
+                    .read(todoListProvider.notifier)
+                    .addTodo(controller.text);
+                if (context.mounted) {
+                  Navigator.pop(context);
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  Navigator.pop(context);
+                  _showErrorSnackBar(context, e);
+                }
               }
             },
             child: const Text('Add'),
@@ -93,5 +138,32 @@ class TodoListScreen extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  void _showErrorSnackBar(BuildContext context, Object error) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(_getErrorMessage(error)),
+        backgroundColor: Colors.red,
+        action: SnackBarAction(
+          label: 'OK',
+          textColor: Colors.white,
+          onPressed: () {},
+        ),
+      ),
+    );
+  }
+
+  String _getErrorMessage(Object error) {
+    if (error is Failure) {
+      return error.when(
+        server: (msg) => 'Server error: $msg',
+        network: () => 'No internet connection',
+        cache: () => 'Failed to access local storage',
+        validation: (msg) => msg,
+        unexpected: (msg) => 'Unexpected error: $msg',
+      );
+    }
+    return 'An error occurred';
   }
 }
