@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_application_clean/core/errors/failures.dart';
 import 'package:flutter_application_clean/features/todo/presentation/providers/todo_providers.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_application_clean/features/todo/presentation/widgets/todo_item.dart';
 
 class TodoListScreen extends ConsumerWidget {
   const TodoListScreen({super.key});
@@ -26,49 +27,10 @@ class TodoListScreen extends ConsumerWidget {
               ),
             );
           }
+
           return ListView.builder(
             itemCount: todos.length,
-            itemBuilder: (context, index) {
-              final todo = todos[index];
-              return ListTile(
-                leading: Checkbox(
-                  value: todo.isCompleted,
-                  onChanged: (_) async {
-                    try {
-                      await ref
-                          .read(todoListProvider.notifier)
-                          .toggleTodo(todo.id);
-                    } catch (e) {
-                      if (context.mounted) {
-                        _showErrorSnackBar(context, e);
-                      }
-                    }
-                  },
-                ),
-                title: Text(
-                  todo.title,
-                  style: TextStyle(
-                    decoration: todo.isCompleted
-                        ? TextDecoration.lineThrough
-                        : null,
-                  ),
-                ),
-                trailing: IconButton(
-                  icon: const Icon(Icons.delete, color: Colors.red),
-                  onPressed: () async {
-                    try {
-                      await ref
-                          .read(todoListProvider.notifier)
-                          .deleteTodo(todo.id);
-                    } catch (e) {
-                      if (context.mounted) {
-                        _showErrorSnackBar(context, e);
-                      }
-                    }
-                  },
-                ),
-              );
-            },
+            itemBuilder: (context, index) => TodoItem(todo: todos[index]),
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
@@ -109,7 +71,9 @@ class TodoListScreen extends ConsumerWidget {
         title: const Text('Add Todo'),
         content: TextField(
           controller: controller,
-          decoration: const InputDecoration(hintText: 'Enter todo title'),
+          decoration: const InputDecoration(
+            hintText: 'Enter todo title',
+          ),
           autofocus: true,
         ),
         actions: [
@@ -120,9 +84,7 @@ class TodoListScreen extends ConsumerWidget {
           FilledButton(
             onPressed: () async {
               try {
-                await ref
-                    .read(todoListProvider.notifier)
-                    .addTodo(controller.text);
+                await ref.read(todoListProvider.notifier).addTodo(controller.text);
                 if (context.mounted) {
                   Navigator.pop(context);
                 }

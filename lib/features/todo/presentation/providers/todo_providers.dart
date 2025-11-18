@@ -61,6 +61,13 @@ class TodoList extends _$TodoList {
     );
   }
 
+  Future<void> updateTodo(String id, String newTitle) async {
+    final repository = ref.read(todoRepositoryProvider);
+    final result = await repository.updateTodo(id, newTitle);
+
+    result.fold((failure) => throw failure, (_) => ref.invalidateSelf());
+  }
+
   Future<void> deleteTodo(String id) async {
     final repository = ref.read(todoRepositoryProvider);
     final result = await repository.deleteTodo(id);

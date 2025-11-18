@@ -50,6 +50,21 @@ class TodoRepositoryImpl implements TodoRepository {
   }
 
   @override
+  Future<Either<Failure, Todo>> updateTodo(String id, String newTitle) async {
+    try {
+      if (newTitle.trim().isEmpty) {
+        return const Left(Failure.validation('Title cannot be empty'));
+      }
+      final todo = dataSource.updateTodo(id, newTitle);
+      return Right(todo);
+    } on CacheException {
+      return const Left(Failure.cache());
+    } catch (e) {
+      return Left(Failure.unexpected(e.toString()));
+    }
+  }
+
+  @override
   Future<Either<Failure, Todo>> toggleTodo(String id) async {
     try {
       final todo = dataSource.toggleTodo(id);

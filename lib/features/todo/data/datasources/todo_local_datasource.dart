@@ -40,6 +40,22 @@ class TodoLocalDataSource {
     return updatedModel.toEntity();
   }
 
+  Todo updateTodo(String id, String newTitle) {
+  final model = box.get(id);
+  if (model == null) {
+    throw Exception('Todo not found');
+  }
+
+  final updatedModel = TodoModel(
+    id: model.id,
+    title: newTitle,
+    isCompleted: model.isCompleted,
+    createdAt: model.createdAt,
+  );
+  box.put(id, updatedModel);
+  return updatedModel.toEntity();
+}
+
   void deleteTodo(String id) {
     box.delete(id);
   }
